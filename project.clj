@@ -9,6 +9,7 @@
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0"] 
                  [org.clojure/clojure "1.10.3"]
+                 [org.clojure/data.json "2.4.0"]
                  [clj-http "3.12.3"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler financeiro.handler/app}

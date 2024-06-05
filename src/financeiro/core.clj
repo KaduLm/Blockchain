@@ -1,7 +1,9 @@
 (ns financeiro.core
   (:require [cheshire.core :as json]
             [clj-http.client :as client]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [financeiro.utils :refer [formatar-bloco]]
+            [financeiro.block :refer [adicionar-transacao exibir-blockchain]]))
  ; (defn -main
 ;;   "I don't do a whole lot ... yet."
 ;;   [& args]
@@ -41,12 +43,25 @@
     (println "Resposta da API para opção 3:\n" formatted-transacoes)))
 
 (defn opcao4 []
-  (let [response (client/get "http://localhost:3000/receitas")]
-    (println "Resposta da API para opção 1:" (:body response))))
+  (try
+    (let [response (client/get "http://localhost:3000/transacoes")
+          body (:body response)
+          parsed-body (json/parse-string body true)
+          transacoes (:transacoes parsed-body)]
+      (doseq [transacao transacoes]
+        (let [valor (:valor transacao)
+              tipo (:tipo transacao)]
+          (adicionar-transacao tipo valor)))
+      (println "Transações adicionadas à blockchain como blocos.")
+      (exibir-blockchain))
+    (catch Exception e
+      (println "Erro ao obter transações:" (.getMessage e)))))
+
+
 
 (defn opcao5 []
-  (let [response (client/get "http://localhost:3000/despesas")]
-    (println "Resposta da API para opção 1:" (:body response))))
+  (financeiro.block/exibir-blockchain))
+
 
 
 (defn mostrar-menu []
@@ -54,7 +69,7 @@
   (println "1. Saldo")
   (println "2. Cadastrar transação")
   (println "3. Exibir transação")
-  (println "4. Opcao 4")
+  (println "4. Transformar as transições em blockchain")
   (println "5. Opcao 5"))
 
 (defn handle-escolha [escolha]
