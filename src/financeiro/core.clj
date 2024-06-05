@@ -1,38 +1,59 @@
 (ns financeiro.core
-  (:require [clj-http.client :as client]))
+  (:require [cheshire.core :as json]
+            [clj-http.client :as client]
+            [clojure.string :as str]))
  ; (defn -main
 ;;   "I don't do a whole lot ... yet."
 ;;   [& args]
 ;;   (println "Hello, World!"))
 
+(defn format-transacoes [transacoes]
+  (str/join "\n"
+            (map (fn [t] (str " - Valor: " (:valor t) ", Tipo: " (:tipo t)))
+                 transacoes)))
 
 (defn opcao1 []
   (println "Opção 1 selecionada")
-  (let [response (client/get "http://3001/saldo")]
-    (println "Resposta da API para opção 1:" (:body response))))
+  (let [response (client/get "http://localhost:3000/saldo")
+        body (:body response)
+        sanitized-body (str/replace body #"[{}\[\]\"]" " ")]
+    (println "Resposta da API para opção 1:" sanitized-body)))
 
 (defn opcao2 []
-    (let [response (client/post "http://3001/transacoes")]
-     (println "Resposta da API para opção 1:" (:body response))))
+  (println "Insira o valor da transação:")
+  (let [valor (read-line)]
+    (println "Insira o tipo da transação (despesa/receita):")
+    (let [tipo (read-line)
+          body {:valor (Double/parseDouble valor)
+                :tipo tipo}
+          response (client/post "http://localhost:3000/transacoes"
+                                {:body (json/generate-string body)
+                                 :headers {"Content-Type" "application/json"}
+                                 :content-type :json})]
+      (println "Resposta da API para opção 2:" (:body response)))))
 
 (defn opcao3 []
-  (let [response (client/get "http://3001/transacoes")]
-    (println "Resposta da API para opção 1:" (:body response))))
+  (let [response (client/get "http://localhost:3000/transacoes")
+        body (:body response)
+        parsed-body (json/parse-string body true)
+        transacoes (:transacoes parsed-body)
+        formatted-transacoes (format-transacoes transacoes)]
+    (println "Resposta da API para opção 3:\n" formatted-transacoes)))
 
 (defn opcao4 []
-  (let [response (client/get "http://3001/receitas")]
+  (let [response (client/get "http://localhost:3000/receitas")]
     (println "Resposta da API para opção 1:" (:body response))))
 
 (defn opcao5 []
-  (let [response (client/get "http://3001/despesas")]
+  (let [response (client/get "http://localhost:3000/despesas")]
     (println "Resposta da API para opção 1:" (:body response))))
 
 
 (defn mostrar-menu []
   (println "\nMenu:")
-  (println "1. Opção 1")
-  (println "2. Opção 2")
-  (println "3. Opção 3")
+  (println "1. Saldo")
+  (println "2. Cadastrar transação")
+  (println "3. Exibir transação")
   (println "4. Opcao 4")
   (println "5. Opcao 5"))
 
