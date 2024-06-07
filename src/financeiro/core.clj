@@ -4,10 +4,6 @@
             [clojure.string :as str]
             [financeiro.utils :refer [formatar-bloco]]
             [financeiro.block :refer [adicionar-transacao exibir-blockchain]]))
- ; (defn -main
-;;   "I don't do a whole lot ... yet."
-;;   [& args]
-;;   (println "Hello, World!"))
 
 (defn format-transacoes [transacoes]
   (str/join "\n"
@@ -52,25 +48,28 @@
         (let [valor (:valor transacao)
               tipo (:tipo transacao)]
           (adicionar-transacao tipo valor)))
-      (println "Transações adicionadas à blockchain como blocos.")
-      (exibir-blockchain))
+      (println "Transações adicionadas à blockchain como blocos."))
     (catch Exception e
       (println "Erro ao obter transações:" (.getMessage e)))))
 
-
-
 (defn opcao5 []
-  (financeiro.block/exibir-blockchain))
+  (try
+    (exibir-blockchain)
+    (catch Exception e
+      (println "Erro ao exibir a blockchain:" (.getMessage e)))))
 
-
+(defn opcao6 []
+  (println "Saindo do programa.")
+  (System/exit 0))
 
 (defn mostrar-menu []
   (println "\nMenu:")
   (println "1. Saldo")
   (println "2. Cadastrar transação")
   (println "3. Exibir transação")
-  (println "4. Transformar as transições em blockchain")
-  (println "5. Opcao 5"))
+  (println "4. Transformar as transações em blockchain")
+  (println "5. Exibir blockchain")
+  (println "6. Sair"))
 
 (defn handle-escolha [escolha]
   (cond
@@ -79,6 +78,7 @@
     (= escolha "3") (opcao3)
     (= escolha "4") (opcao4)
     (= escolha "5") (opcao5)
+    (= escolha "6") (opcao6)
     :else (println "Opção inválida. Tente novamente.")))
 
 (defn -main [& args]
@@ -86,7 +86,5 @@
     (mostrar-menu)
     (let [escolha (read-line)]
       (handle-escolha escolha)
-      (when (not= escolha "4")
+      (when (not= escolha "6")
         (recur)))))
-
-;;(-main)
