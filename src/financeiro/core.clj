@@ -3,7 +3,7 @@
             [clj-http.client :as client]
             [clojure.string :as str]
             [financeiro.utils :refer [formatar-bloco]]
-            [financeiro.block :refer [adicionar-transacao exibir-blockchain]]))
+            [financeiro.block :refer [adicionar-transacoes-em-bloco exibir-blockchain]]))
 
 (defn format-transacoes [transacoes]
   (str/join "\n"
@@ -44,11 +44,8 @@
           body (:body response)
           parsed-body (json/parse-string body true)
           transacoes (:transacoes parsed-body)]
-      (doseq [transacao transacoes]
-        (let [valor (:valor transacao)
-              tipo (:tipo transacao)]
-          (adicionar-transacao tipo valor)))
-      (println "Transações adicionadas à blockchain como blocos."))
+      (adicionar-transacoes-em-bloco transacoes)
+      (println "Todas as transações foram adicionadas à blockchain em um único bloco."))
     (catch Exception e
       (println "Erro ao obter transações:" (.getMessage e)))))
 

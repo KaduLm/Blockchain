@@ -3,7 +3,6 @@
             [financeiro.utils :refer [formatar-bloco]]
             [clojure.string :as str]))
 
-
 (defn sha256 [data]
   (let [message-digest (java.security.MessageDigest/getInstance "SHA-256")]
     (->> (.digest message-digest (.getBytes data))
@@ -17,7 +16,6 @@
      :dados dados-str
      :hash-anterior hash-anterior
      :hash (sha256 (str numero nonce dados-str hash-anterior))}))
-
 
 (defn bloco-valido? [bloco]
   (= (subs (:hash bloco) 0 4) "0000"))
@@ -54,28 +52,11 @@
 (defn adicionar-transacao [transacao valor]
   (adicionar-bloco transacao valor))
 
-(defn -main []
-  (println "Insira os detalhes da transação:")
-  (print "Transação: ")
-  (flush)
-  (let [transacao (read-line)]
-    (print "Valor: ")
-    (flush)
-    (let [valor (read-line)]
-      (adicionar-bloco transacao (Integer/parseInt valor))
-      (println "Blockchain atualizado:")
-      (doseq [bloco @blockchain]
-        (println (formatar-bloco bloco))
-        (println)))) ; Adiciona uma linha em branco entre os blocos
-  )
-
-(defn -main [& args]
-  (if (= (count args) 2)  ; Verifica se há exatamente 2 argumentos passados
-    (let [transacao (nth args 0)
-          valor (Integer/parseInt (nth args 1))]
-      (adicionar-bloco transacao valor)
-      (doseq [bloco @blockchain]
-        (println (formatar-bloco bloco))))
-    (println "Uso: block.clj <transacao> <valor>")))
-
-(-main)
+(defn adicionar-transacoes-em-bloco [transacoes]
+  (let [ultimo-bloco (last @blockchain)
+        numero (inc (:numero ultimo-bloco))
+        hash-anterior (:hash ultimo-bloco)
+        dados {:transacoes transacoes}
+        nonce (encontrar-nonce numero dados hash-anterior)
+        novo-bloco (novo-bloco numero nonce dados hash-anterior)]
+    (swap! blockchain conj novo-bloco)))
